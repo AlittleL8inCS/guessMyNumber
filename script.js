@@ -1,20 +1,36 @@
 'use strict';
 
-let secretNumber = Math.trunc(Math.random() * 19 + 1);
-
 const message = document.querySelector(`.message`);
-message.textContent = `Start meme...`;
-
 const labelHighscore = document.querySelector(`.label-highscore`);
-labelHighscore.textContent = ` 🥇 Highscore: 20`; // Initial highscore
 let number = document.querySelector(`.number`);
-number.textContent = '?'; // Initially set to the secret number for visibility
 const score = document.querySelector(`.score`);
-let scoreVal = 20; // Initial score
-
+let scoreVal = 20;
+let highscoreEl = document.querySelector(`.highscore`);
+let againBtn = document.querySelector(`.again`);
 let guess = document.querySelector(`.guess`);
-
 const checkButton = document.querySelector(`.check`);
+
+let highscore = 0; // Initialize highscore
+let secretNumber;
+
+function displayMessage(msg) {
+  message.textContent = msg;
+}
+
+function resetState() {
+  secretNumber = Math.trunc(Math.random() * 19 + 1);
+  displayMessage(`Start guessing...`);
+  number.textContent = '?'; // Initially set to the secret number for visibility
+  number.style.width = `15rem`;
+  number.style.backgroundColor = `#fff`;
+  document.querySelector(`body`).style.backgroundColor = `#222`;
+  scoreVal = 20;
+  score.textContent = scoreVal;
+  guess.value = ``;
+  highscoreEl.textContent = `${highscore}`;
+  checkButton.disabled = false;
+  againBtn.classList.add(`hidden`);
+}
 
 //make the box blink
 function makeBoxBlink(hexcode) {
@@ -24,45 +40,65 @@ function makeBoxBlink(hexcode) {
   }, 100);
 }
 
+function wrongGuess(direction) {
+  displayMessage(
+    `too ${direction}! ${
+      direction == 'high' ? '📈' : direction == 'low' ? '📉' : ''
+    }`
+  );
+  makeBoxBlink(`#ff0000`);
+  scoreVal--;
+  setTextContent(score, scoreVal);
+}
+
 checkButton.addEventListener(`click`, () => {
   let currGuess = Number(guess.value);
 
   if (!currGuess) {
-    message.textContent = `No number! 🤷‍♂️`;
+    displayMessage(`⛔ No number!`);
   } else if (currGuess === secretNumber) {
-    message.textContent = `Correct Number! 🎉 \nNumber Changed`;
+    displayMessage(`🎉 Correct Number!`);
 
-    //Make the number visible for 3 seconds
     number.textContent = secretNumber;
-    number.style.backgroundColor = `#60b347`;
+    document.querySelector(`body`).style.backgroundColor = `#60b347`;
+    number.style.width = `30rem`;
     checkButton.disabled = true; // Disable the button after correct guess
 
-    setTimeout(() => {
-      number.textContent = '?';
-      number.style.backgroundColor = `#fff`;
-      checkButton.disabled = false; // Re-enable the button after 3 seconds
-    }, 3000);
+    // START AFTER 3 SECONDS
+    // setTimeout(() => {
+    //   number.textContent = '?';
+    //   number.style.backgroundColor = `#fff`;
+    //   checkButton.disabled = false; // Re-enable the button after 3 seconds
+    //   document.querySelector(`body`).style.backgroundColor = `#222`;
+    //   number.style.width = `15rem`;
+    // }, 3000);
 
     //change score
     scoreVal++;
     score.textContent = scoreVal;
 
-    // Change secret number
-    secretNumber = Math.trunc(Math.random() * 19 + 1);
-
-    // Update the highscore if the current score is greater
-    if (scoreVal > Number(labelHighscore.textContent.split(': ')[1])) {
-      labelHighscore.textContent = ` 🥇 Highscore: ${scoreVal}`;
+    if (scoreVal > highscore) {
+      highscore = scoreVal;
+      highscoreEl.textContent = `${highscore}`;
     }
-  } else if (currGuess > secretNumber) {
-    message.textContent = `Too high! 📈`;
-    makeBoxBlink(`#ff0000`);
-    scoreVal--;
-    score.textContent = scoreVal;
-  } else if (currGuess < secretNumber) {
-    makeBoxBlink(`#ff0000`);
-    message.textContent = `Too low! 📉`;
-    scoreVal--;
-    score.textContent = scoreVal;
+
+    againBtn.classList.remove(`hidden`); // Show the "Again" button
+
+    // Change secret number
+    // secretNumber = Math.trunc(Math.random() * 19 + 1);
+  } else if (currGuess > secretNumber && scoreVal > 0) {
+    wrongGuess('high');
+  } else if (currGuess < secretNumber && scoreVal > 0) {
+    wrongGuess('low');
+  }
+  if (scoreVal == 0) {
+    displayMessage(`💥 You lost the game!`);
+    score.textContent = `0`;
   }
 });
+
+againBtn.addEventListener(`click`, () => {
+  resetState();
+});
+
+resetState();

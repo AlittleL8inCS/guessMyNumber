@@ -45,6 +45,10 @@ main {
   font-size: 2rem;
 }
 
+.hidden {
+  display: none;
+}
+
 /* ELEMENTS STYLE */
 h1 {
   font-size: 4rem;
